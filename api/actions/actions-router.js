@@ -30,27 +30,23 @@ router.post("/", validateAction, async (req, res) => {
 })
 
 // PUT /api/actions/:id
-router.put("/:id", async (req, res) => {
-    if(!req.body) {
-        res.status(400).json({ message: "All fields required" })
-    } 
-    await Action.update(req.params.id)
-        .then((action) => {
-            if (action) {
-                res.status(202).json(action)
-            } else {
-                res.status(404).json({
-                    message: "The action with the specified ID does not exist"
-                })
-            }
-        })
-        .catch((error) => {
-            console.log(error)
-            res.status(500).json({
-                message: "The action could not be modified."
-            })
-        })
+router.put("/:id", validateActionId, validateAction, async (req, res, next) => {
+    const update = req.body;
+    const { id } = req.params;
+    const actionUpdated = await Action.update(id, update);
+    actionUpdated
+        ? res.status(200).json({ ...update, id })
+        : next
 })
+
+// DELETE /api/actions/:id
+router.delete("/:id", validateActionId, async (req, res, next) => {
+    const { id } = req.params;
+    const actionDeleted = await Action.remove(id);
+    actionDeleted
+        ? res.status(200).json(id)
+        : next
+});
     
 
 
